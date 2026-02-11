@@ -1,5 +1,8 @@
 # Trials and Triumph
 
+Figma:
+https://www.figma.com/design/Q21OYF40ZGowiiioWJGUjQ/trials-and-triumps?node-id=0-1&t=CBdDV4Ik7DN004oJ-1
+
 ## Getting Started
 
 First, run the development server:

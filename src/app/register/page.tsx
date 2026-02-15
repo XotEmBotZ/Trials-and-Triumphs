@@ -47,7 +47,7 @@ export default function RegisterPage() {
 					{
 						user_id: user.id,
 						name: teamName,
-						current_step: 'character-selection',
+						current_step: 'SELECT',
 					},
 				])
 				.select()

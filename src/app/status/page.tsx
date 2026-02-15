@@ -154,7 +154,7 @@ export default function TeamStatusPage() {
 								</div>
 
 								{character ? (
-									<CharacterCard character={character} disabled={true} />
+									<CharacterCard character={character} disabled={false} />
 								) : (
 									<div className="w-[380px] aspect-[1/1.35] flex items-center justify-center bg-black/40 border border-dashed border-amber-900/30 rounded-xl">
 										<button

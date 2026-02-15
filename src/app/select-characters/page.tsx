@@ -23,7 +23,9 @@ export default function SelectCharactersPage() {
 	const [team, setTeam] = useState<any>(null)
 	const [players, setPlayers] = useState<any[]>([])
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
-	const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
+	const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+		null,
+	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -60,7 +62,7 @@ export default function SelectCharactersPage() {
 				setPlayers(playersData)
 
 				// Find the first player who hasn't selected a character
-				const nextPlayerIndex = playersData.findIndex(p => !p.character_key)
+				const nextPlayerIndex = playersData.findIndex((p) => !p.character_key)
 				if (nextPlayerIndex === -1) {
 					// All players have selected characters
 					router.push('/status')
@@ -96,7 +98,7 @@ export default function SelectCharactersPage() {
 			const updatedPlayers = [...players]
 			updatedPlayers[currentPlayerIndex] = {
 				...currentPlayer,
-				character_key: selectedCharacter.id
+				character_key: selectedCharacter.id,
 			}
 			setPlayers(updatedPlayers)
 			setSelectedCharacter(null)
@@ -107,9 +109,9 @@ export default function SelectCharactersPage() {
 				// Update team step
 				await supabase
 					.from('teams')
-					.update({ current_step: 'completed' })
+					.update({ current_step: 'COMPLETED' })
 					.eq('id', team.id)
-				
+
 				router.push('/status')
 			}
 		} catch (error) {
@@ -178,27 +180,39 @@ export default function SelectCharactersPage() {
 				</div>
 
 				{/* Character Grid */}
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 w-full justify-items-center mb-16">
-					{CHARACTERS.map((char) => (
-						<CharacterCard
-							key={char.id}
-							character={char}
-							isSelected={selectedCharacter?.id === char.id}
-							onSelect={setSelectedCharacter}
-							disabled={isSubmitting}
-						/>
-					))}
+				<div className="flex flex-wrap items-center justify-center gap-8 w-full justify-items-center mb-16">
+					{CHARACTERS.map((char) => {
+						const isUnavailable = players.some(
+							(p) => p.character_key === char.id,
+						)
+						return (
+							<CharacterCard
+								key={char.id}
+								character={char}
+								isSelected={selectedCharacter?.id === char.id}
+								isUnavailable={isUnavailable}
+								onSelect={setSelectedCharacter}
+								disabled={isSubmitting}
+							/>
+						)
+					})}
 				</div>
 
 				<div className="mt-8">
-					<button 
+					<button
 						onClick={handleConfirm}
 						disabled={!selectedCharacter || isSubmitting}
 						className={`group relative inline-block px-12 py-4 bg-[#3E2723] hover:bg-[#4E342E] text-white text-xl font-bold tracking-[0.2em] rounded-lg border-2 border-[#C5A059]/40 transition-all duration-300 transform active:scale-95 shadow-[0_0_20px_rgba(0,0,0,0.5)] uppercase disabled:grayscale disabled:opacity-50 ${!selectedCharacter ? 'cursor-not-allowed' : 'hover:scale-105'}`}
 					>
-						<div className={`absolute inset-0 bg-[#C5A059] blur-md opacity-20 group-hover:opacity-40 transition-opacity rounded-lg ${!selectedCharacter ? 'hidden' : ''}`} />
+						<div
+							className={`absolute inset-0 bg-[#C5A059] blur-md opacity-20 group-hover:opacity-40 transition-opacity rounded-lg ${!selectedCharacter ? 'hidden' : ''}`}
+						/>
 						<span className="relative">
-							{isSubmitting ? 'Confirming...' : (selectedCharacter ? `Confirm ${selectedCharacter.name}` : 'Select a Role')}
+							{isSubmitting
+								? 'Confirming...'
+								: selectedCharacter
+									? `Confirm ${selectedCharacter.name}`
+									: 'Select a Role'}
 						</span>
 					</button>
 				</div>

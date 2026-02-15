@@ -1,14 +1,31 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import { useEffect } from 'react';
 
 export default function CharacterSelectionPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleComplete = () => {
     // Logic to save selections and redirect
     router.push('/status');
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white text-2xl">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center p-8">

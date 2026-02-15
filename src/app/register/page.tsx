@@ -1,15 +1,32 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import { useEffect } from 'react';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Logic to store team data in local state/context will go here
     router.push('/select-characters');
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white text-2xl">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center p-8">

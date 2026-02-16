@@ -40,29 +40,21 @@ export default function RegisterPage() {
 		setIsSubmitting(true)
 
 		try {
-			// Insert team
-			const { data: teamData, error: teamError } = await supabase
+			// Insert team with players in one go
+			const { error: teamError } = await supabase
 				.from('teams')
 				.insert([
 					{
 						user_id: user.id,
 						name: teamName,
 						current_step: 'SELECT',
+						p1_name: player1Name,
+						p2_name: player2Name,
+						p3_name: player3Name,
 					},
 				])
-				.select()
-				.single()
 
 			if (teamError) throw teamError
-
-			// Insert players
-			const { error: playersError } = await supabase.from('players').insert([
-				{ team_id: teamData.id, name: player1Name, slot_index: 0 },
-				{ team_id: teamData.id, name: player2Name, slot_index: 1 },
-				{ team_id: teamData.id, name: player3Name, slot_index: 2 },
-			])
-
-			if (playersError) throw playersError
 
 			router.push('/select-characters')
 		} catch (error) {

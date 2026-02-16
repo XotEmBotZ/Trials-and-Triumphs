@@ -51,14 +51,12 @@ export default function SelectCharactersPage() {
 				if (teamError) throw teamError
 				setTeam(teamData)
 
-				// Fetch players for that team
-				const { data: playersData, error: playersError } = await supabase
-					.from('players')
-					.select('*')
-					.eq('team_id', teamData.id)
-					.order('slot_index', { ascending: true })
-
-				if (playersError) throw playersError
+				// Map flattened columns to players array
+				const playersData = [
+					{ name: teamData.p1_name, character_key: teamData.p1_character },
+					{ name: teamData.p2_name, character_key: teamData.p2_character },
+					{ name: teamData.p3_name, character_key: teamData.p3_character },
+				]
 				setPlayers(playersData)
 
 				// Find the first player who hasn't selected a character
@@ -87,10 +85,12 @@ export default function SelectCharactersPage() {
 		setIsSubmitting(true)
 		try {
 			const currentPlayer = players[currentPlayerIndex]
+			const slotKey = `p${currentPlayerIndex + 1}_character`
+
 			const { error } = await supabase
-				.from('players')
-				.update({ character_key: selectedCharacter.id })
-				.eq('id', currentPlayer.id)
+				.from('teams')
+				.update({ [slotKey]: selectedCharacter.id })
+				.eq('id', team.id)
 
 			if (error) throw error
 

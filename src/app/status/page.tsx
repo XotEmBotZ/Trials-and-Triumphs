@@ -54,15 +54,29 @@ export default function TeamStatusPage() {
 
 				setTeam(teamData)
 
-				// Fetch players for that team
-				const { data: playersData, error: playersError } = await supabase
-					.from('players')
-					.select('*')
-					.eq('team_id', teamData.id)
-					.order('slot_index', { ascending: true })
-
-				if (playersError) throw playersError
+				// Map flattened columns to players array including levels
+				const playersData = [
+					{
+						id: 'p1',
+						name: teamData.p1_name,
+						character_key: teamData.p1_character,
+						level: teamData.p1_level,
+					},
+					{
+						id: 'p2',
+						name: teamData.p2_name,
+						character_key: teamData.p2_character,
+						level: teamData.p2_level,
+					},
+					{
+						id: 'p3',
+						name: teamData.p3_name,
+						character_key: teamData.p3_character,
+						level: teamData.p3_level,
+					},
+				]
 				setPlayers(playersData)
+				console.log(playersData)
 			} catch (error) {
 				console.error('Error fetching team status:', error)
 			} finally {
@@ -74,6 +88,55 @@ export default function TeamStatusPage() {
 			fetchTeamStatus()
 		}
 	}, [user, authLoading, router, supabase])
+
+	// Real-time subscription
+	useEffect(() => {
+		if (!supabase || !team?.id) return
+
+		const channel = supabase
+			.channel('team_status_changes')
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'teams',
+					filter: `id=eq.${team.id}`,
+				},
+				(payload) => {
+					const newTeam = payload.new
+					setTeam(newTeam)
+
+					// Update players from the new team data
+					const updatedPlayers = [
+						{
+							id: 'p1',
+							name: newTeam.p1_name,
+							character_key: newTeam.p1_character,
+							level: newTeam.p1_level,
+						},
+						{
+							id: 'p2',
+							name: newTeam.p2_name,
+							character_key: newTeam.p2_character,
+							level: newTeam.p2_level,
+						},
+						{
+							id: 'p3',
+							name: newTeam.p3_name,
+							character_key: newTeam.p3_character,
+							level: newTeam.p3_level,
+						},
+					]
+					setPlayers(updatedPlayers)
+				},
+			)
+			.subscribe()
+
+		return () => {
+			supabase.removeChannel(channel)
+		}
+	}, [supabase, team?.id])
 
 	if (authLoading || isLoading) {
 		return <Loading />
@@ -154,7 +217,12 @@ export default function TeamStatusPage() {
 								</div>
 
 								{character ? (
-									<CharacterCard character={character} disabled={false} />
+									<CharacterCard
+										character={character}
+										disabled={false}
+										level={player.level}
+										disableLevelCycling={true}
+									/>
 								) : (
 									<div className="w-[380px] aspect-[1/1.35] flex items-center justify-center bg-black/40 border border-dashed border-amber-900/30 rounded-xl">
 										<button

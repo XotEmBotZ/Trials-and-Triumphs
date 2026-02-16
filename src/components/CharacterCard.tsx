@@ -16,6 +16,7 @@ interface CharacterCardProps {
 	disabled?: boolean
 	isUnavailable?: boolean
 	level?: number
+	disableLevelCycling?: boolean
 }
 
 export default function CharacterCard({
@@ -25,16 +26,17 @@ export default function CharacterCard({
 	disabled,
 	isUnavailable,
 	level: initialLevel = 1,
+	disableLevelCycling = false,
 }: CharacterCardProps) {
 	const [displayLevel, setDisplayLevel] = useState(initialLevel)
 	const [isHovered, setIsHovered] = useState(false)
 	const cycleIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
 	useEffect(() => {
-		if (isHovered && !disabled && !isUnavailable) {
+		if (isHovered && !disabled && !isUnavailable && !disableLevelCycling) {
 			cycleIntervalRef.current = setInterval(() => {
 				setDisplayLevel((prev) => (prev >= 6 ? 1 : prev + 1))
-			}, 3000)
+			}, 1500)
 		} else {
 			if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current)
 			setDisplayLevel(initialLevel)
@@ -43,7 +45,7 @@ export default function CharacterCard({
 		return () => {
 			if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current)
 		}
-	}, [isHovered, initialLevel, disabled, isUnavailable])
+	}, [isHovered, initialLevel, disabled, isUnavailable, disableLevelCycling])
 
 	const ultimateSkill =
 		character.skills.find((s) => s.name.toLowerCase().includes('ultimate')) ||
@@ -51,7 +53,9 @@ export default function CharacterCard({
 	const basicSkills = character.skills.filter((s) => s !== ultimateSkill)
 
 	// Get stats for the current display level
-	const currentStats = character.levelStats?.find((s) => s.level === displayLevel) || {
+	const currentStats = character.levelStats?.find(
+		(s) => s.level === displayLevel,
+	) || {
 		hp: character.hp,
 		atk: character.atk,
 		mana: character.mana,
@@ -68,7 +72,13 @@ export default function CharacterCard({
 			className={`relative w-[380px] aspect-[1/1.35] flex flex-col transition-all duration-300 group select-none ${
 				isSelected ? 'scale-105 z-20' : 'hover:scale-[1.02] z-10'
 			} ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'} ${
-				isUnavailable ? 'opacity-40 grayscale blur-[1px]' : isSelected ? '' : disabled ? 'opacity-60 grayscale' : ''
+				isUnavailable
+					? 'opacity-40 grayscale blur-[1px]'
+					: isSelected
+						? ''
+						: disabled
+							? 'opacity-60 grayscale'
+							: ''
 			}`}
 		>
 			{/* Scroll Background */}
@@ -89,8 +99,12 @@ export default function CharacterCard({
 				{/* Top Section: Stage, Name, HP */}
 				<div className="mb-2">
 					<div className="flex justify-between items-center mb-1">
-						<div className={`bg-[#ffffff61] border border-stone-400 h-4 px-1.5 flex items-center rounded-sm shadow-sm transition-colors duration-500 ${isHovered ? 'bg-amber-100/80 border-amber-600/50' : ''}`}>
-							<span className={`text-[6px] font-black tracking-tighter uppercase text-stone-800 ${isHovered ? 'text-amber-900' : ''}`}>
+						<div
+							className={`bg-[#ffffff61] border border-stone-400 h-5 px-2 flex items-center rounded-sm shadow-sm transition-colors duration-500 ${isHovered ? 'bg-amber-100/80 border-amber-600/50' : ''}`}
+						>
+							<span
+								className={`text-[10px] font-black tracking-tighter uppercase text-stone-800 ${isHovered ? 'text-amber-900' : ''}`}
+							>
 								LEVEL {displayLevel}
 							</span>
 						</div>
@@ -125,7 +139,9 @@ export default function CharacterCard({
 				{/* Illustration Area */}
 				<div className="relative flex-1 flex items-center justify-center mb-2 min-h-0 overflow-hidden">
 					{character.spriteUrl ? (
-						<img
+						<Image
+							width={240}
+							height={240}
 							src={character.spriteUrl}
 							alt={character.name}
 							className="max-h-full w-auto object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105"
@@ -139,7 +155,9 @@ export default function CharacterCard({
 
 				{/* Middle Description Box (Full Info) */}
 				<div className="bg-[#fcf8f0]/25 border border-stone-400/50 rounded-lg overflow-hidden shadow-sm mb-2">
-					<div className={`bg-gradient-to-r transition-colors duration-500 ${isHovered ? 'from-[#a62d2d] to-[#8b2323]' : 'from-[#8b23239e] to-[#a62d2daa]'} text-white px-2 py-0.5 flex justify-between items-center`}>
+					<div
+						className={`bg-gradient-to-r transition-colors duration-500 ${isHovered ? 'from-[#a62d2d] to-[#8b2323]' : 'from-[#8b23239e] to-[#a62d2daa]'} text-white px-2 py-0.5 flex justify-between items-center`}
+					>
 						<h3 className="text-[8px] font-bold uppercase tracking-wider truncate mr-1">
 							{character.class}{' '}
 							<span className="text-[6px] opacity-70 italic font-normal">
@@ -147,9 +165,15 @@ export default function CharacterCard({
 							</span>
 						</h3>
 						<div className="flex gap-1.5 text-[6.5px] font-black opacity-90 whitespace-nowrap">
-							<span className={isHovered ? 'text-amber-200' : ''}>ATK {currentStats.atk}</span>
-							<span className={isHovered ? 'text-amber-200' : ''}>MP {currentStats.mana}</span>
-							<span className={isHovered ? 'text-amber-200' : ''}>SPD {currentStats.speed}</span>
+							<span className={isHovered ? 'text-amber-200' : ''}>
+								ATK {currentStats.atk}
+							</span>
+							<span className={isHovered ? 'text-amber-200' : ''}>
+								MP {currentStats.mana}
+							</span>
+							<span className={isHovered ? 'text-amber-200' : ''}>
+								SPD {currentStats.speed}
+							</span>
 						</div>
 					</div>
 					<div className="p-1.5 px-2 flex flex-col gap-1.5">
